@@ -2,13 +2,10 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, TextInput, View, TouchableOpacity, Alert } from 'react-native';
 import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Picker } from '@react-native-picker/picker';
 import { register } from '../../firebaseAuth';
 
 export default function RegisterPage() {
     const navigation = useNavigation();
-
-    const [selectedValue, setSelectedValue] = useState('');
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');

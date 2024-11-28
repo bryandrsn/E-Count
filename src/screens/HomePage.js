@@ -1,10 +1,9 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, TextInput, View, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { StyleSheet, Text, TextInput, View, TouchableOpacity, Alert } from 'react-native';
 import React, { useState } from "react";
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { logout } from '../../firebaseAuth';
-
 
 export default function HomePage() {
     const navigation = useNavigation();
@@ -18,12 +17,6 @@ export default function HomePage() {
             return <AccountScreen />;
         }
         return null;
-    };
-
-    const handleNavigate = (page) => {
-        // Logika navigasi ke fitur tertentu
-        
-        Alert.alert(`Navigasi ke fitur: ${page}`);
     };
 
     const handleLogout = () => {
@@ -44,17 +37,17 @@ export default function HomePage() {
             </View>
 
             <View style={styles.menuContainer}>
-                <TouchableOpacity style={styles.menuButton} onPress={() => handleNavigate('Tambah Barang Baru')}>
+                <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Tambah Barang')}>
                     <Ionicons name="add-circle-outline" size={60} />
                     <Text style={styles.menuText}>Add</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuButton} onPress={() => handleNavigate('Hapus Barang')}>
+                <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Hapus Barang')}>
                     <Ionicons name="remove-circle-outline" size={60} />
                     <Text style={styles.menuText}>Subtract</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuButton} onPress={() => handleNavigate('Lihat Daftar Barang')}>
+                <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Daftar Barang')}>
                     <Ionicons name="list-circle-outline" size={60} />
                     <Text style={styles.menuText}>View List</Text>
                 </TouchableOpacity>

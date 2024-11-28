@@ -3,8 +3,6 @@ import { StyleSheet, Text, TextInput, View, TouchableOpacity, Alert, ActivityInd
 import React, { useState } from "react";
 import { useNavigation } from '@react-navigation/native';
 import { login } from '../../firebaseAuth';
-import { Ionicons } from '@expo/vector-icons';
-
 
 export default function LoginPage() {
 	const navigation = useNavigation();

@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, TextInput, View, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import React, { useState } from "react";
 import { useNavigation } from '@react-navigation/native';
-import { login } from '../../firebaseAuth';
+import { login }from '../../firebaseAuth';
 
 export default function LoginPage() {
 	const navigation = useNavigation();
@@ -20,14 +20,19 @@ export default function LoginPage() {
 	
 		setIsLoading(true);
 		try {
-			const isLoggedIn = await login(email, password);
+			const loginKey = await login(email, password);
 			setIsLoading(false);
 
-			if (isLoggedIn === true) {
-				navigation.navigate('Home Page');
+			if (loginKey.isLoggedIn && loginKey.verified) {
+				loginKey.role === "admin" ? navigation.navigate('Homepage Admin') : navigation.navigate('Homepage Worker')
 			}
 			else {
-				Alert.alert('Login Gagal!', 'Email atau password salah. Silakan coba lagi.');
+				if (!loginKey.isLoggedIn) {
+					Alert.alert('Login Gagal!', 'Email atau password salah. Silakan coba lagi.');
+				}
+				else if (!loginKey.verified) {
+					Alert.alert('Akun anda belum terverifikasi!', 'Silahkan hubungi Admin untuk verifikasi akun.');
+				}
 			}
 		}
 		catch (error) {

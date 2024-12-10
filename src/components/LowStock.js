@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { StatusBar } from 'expo-status-bar';
-import { Text, FlatList, View, StyleSheet, Button, RefreshControl, Alert } from "react-native";
-import { collection, getDocs } from "firebase/firestore";
+import { Text, FlatList, View, StyleSheet, Button, RefreshControl, Alert, TouchableOpacity } from "react-native";
+import { collection, doc, getDocs, updateDoc } from "firebase/firestore";
 import { db } from "../config/firebaseConfig";
-import { MaterialCommunityIcons, Feather, Entypo }from '@expo/vector-icons';
+import { MaterialCommunityIcons, Feather }from '@expo/vector-icons';
 
-export default function ListItem(){
+export default function LowStock(){
     const [items, setItems] = useState([]);
-    const [refresh, setRefresh] = useState(false)
-    
+    const [refresh, setRefresh] = useState(false);
+
     const fetchItems = async () => {
         try {
             const docRef = collection(db, "items");
             const fetchItems = await getDocs(docRef);
-            const itemsData = fetchItems.docs.map(item => ({
+            const itemsData = fetchItems.docs.filter(item => item.data().isLow === true)
+            .map(item => ({
                 id: item.id,
                 ...item.data()
             }));
@@ -23,24 +24,37 @@ export default function ListItem(){
             console.error('Fetch Items Error:', error);
             Alert.alert('Terjadi Kesalahan!', 'Tidak dapat terhubung ke server. Silakan coba lagi.');
         }
-    }
+    };
 
     useEffect(() => {
         fetchItems();
     }, []);
 
     const refreshList = async () => {
-        setRefresh(true)
+        setRefresh(true);
         await fetchItems();
-        setRefresh(false)
-    }
+        setRefresh(false);
+    };
 
-    return(
+    const markAsRead = async (item) => {
+        try {
+            const docRef = doc(db, "items", item.id);
+            await updateDoc(docRef, { isLow: false });
+            Alert.alert("Ditandai telah dibaca!", "Lakukan restok barang segera.");
+            await refreshList();
+        }
+        catch {
+            console.error("Update Mark Error:", error);
+            Alert.alert("Terjadi Kesalahan!", "Tidak dapat terhubung ke server. Silakan coba lagi.");
+        }
+    };
+
+    return (
         <View style={styles.container}>
             <FlatList
-                data = {items}
+                data={items}
                 keyExtractor={(item) => item.id}
-                renderItem={({item}) => (
+                renderItem={({ item }) => (
                     <View style={styles.itemContainer}>
                         <View style={styles.dataBox}>
                             <View style={styles.icon}>
@@ -60,31 +74,34 @@ export default function ListItem(){
                         </View>
                         <View style={styles.dataBox}>
                             <View style={styles.icon}>
-                                <Entypo name="price-tag" size={40} color="#428bca" />
-                            </View>
-                            <View style={styles.dataContainer}>
-                                <Text style={styles.itemText}>Rp. {item.price}</Text>
-                            </View>
-                        </View>
-                        <View style={styles.dataBox}>
-                            <View style={styles.icon}>
                                 <MaterialCommunityIcons name="counter" size={40} color="#428bca" />
                             </View>
                             <View style={styles.dataContainer}>
                                 <Text style={styles.itemText}>{item.stock}</Text>
                             </View>
                         </View>
+                        <TouchableOpacity
+                            style={[
+                                styles.button,
+                                item.isLow ? styles.buttonActive : styles.buttonDisabled
+                            ]}
+                            onPress={() => markAsRead(item)}
+                            disabled={!item.isLow}
+                        >
+                            <Text style={styles.buttonText}>Tandai Telah Dibaca</Text>
+                        </TouchableOpacity>
                     </View>
                 )}
                 refreshControl={
                     <RefreshControl refreshing={refresh} onRefresh={refreshList} />
                 }
                 ListEmptyComponent={
-                    <View style={styles.buttonContainer} >
-                        <Button title="Reload" onPress={fetchItems} color="#d9534f" />
-                    </View>}
+                    <View style={styles.buttonContainer}>
+                        <Button title="Reload" onPress={() => fetchItems()} color="#d9534f" />
+                    </View>
+                }
             />
-            
+
             <StatusBar style="light" />
         </View>
     );
@@ -99,7 +116,7 @@ const styles = StyleSheet.create({
     itemContainer: {
         padding: 20,
         backgroundColor: "#f9f9f9",
-        marginBottom: 20,
+        marginBottom: 10,
         borderRadius: 8,
         borderWidth: 1,
         borderColor: "#ccc",
@@ -130,7 +147,20 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: '#f9f9f9'
     },
-    buttonReload: {
-        color: "red"
+    button: {
+        marginTop: 15,
+        padding: 10,
+        borderRadius: 20,
+        alignItems: "center",
     },
-})
+    buttonActive: {
+        backgroundColor: "#5cb85c",
+    },
+    buttonDisabled: {
+        backgroundColor: "#ccc",
+    },
+    buttonText: {
+        color: "#f9f9f9",
+        fontWeight: "bold",
+    },
+});

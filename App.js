@@ -4,11 +4,16 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import LoginPage from './src/screens/LoginPage';
 import RegisterPage from './src/screens/RegisterPage';
-import HomePage from './src/screens/HomePage';
+import HomepageWorker from './src/screens/HomepageWorker';
+import HomepageAdmin from './src/screens/HomepageAdmin';
 import AddItem from './src/components/AddItem';
 import RemoveItem from './src/components/RemoveItem';
 import ListItem from './src/components/ListItem';
-
+import VerifyAcc from './src/components/VerifyAcc';
+import LowStock from './src/components/LowStock';
+import AddStock from './src/components/AddStock';
+import SubtractStock from './src/components/SubtractStock';
+import ListStock from './src/components/ListStock';
 
 const Stack = createStackNavigator();
 
@@ -17,18 +22,43 @@ export default function App() {
         <SafeAreaProvider>
             <NavigationContainer>
                 <Stack.Navigator initialRouteName="Login">
-                    <Stack.Screen name="Login" component={LoginPage} options={{ headerShown: false }} />
-                    <Stack.Screen name="Register" component={RegisterPage} />
-                    <Stack.Screen name="Home Page" component={HomePage} options={{ headerShown: false }} />
+                    <Stack.Screen name="Login"
+                        component={LoginPage}
+                        options={{ headerShown: false }} />
+                    <Stack.Screen name="Register" 
+                        component={RegisterPage} />
+                    <Stack.Screen name="Homepage Worker"
+                        component={HomepageWorker}
+                        options={{ headerShown: false }} />
+                    <Stack.Screen name="Homepage Admin"
+                        component={HomepageAdmin}
+                        options={{ headerShown: false }} />
 
-                    <Stack.Screen name="Tambah Barang" component={AddItem} options={{ headerStyle: { backgroundColor: '#428bca' }, headerTintColor: "#f9f9f9" }} />
-                    <Stack.Screen name="Hapus Barang" component={RemoveItem} options={{ headerStyle: { backgroundColor: '#428bca' }, headerTintColor: "#f9f9f9" }} />
-                    <Stack.Screen name="Daftar Barang" component={ListItem} options={{ headerStyle: { backgroundColor: '#428bca' }, headerTintColor: "#f9f9f9" }} />
+                    <Stack.Screen name="Tambah Barang"
+                        component={AddItem}
+                        options={{ headerStyle: { backgroundColor: '#428bca' }, headerTintColor: "#f9f9f9" }} />
+                    <Stack.Screen name="Hapus Barang"
+                        component={RemoveItem}
+                        options={{ headerStyle: { backgroundColor: '#428bca' }, headerTintColor: "#f9f9f9" }} />
+                    <Stack.Screen name="Daftar Barang"
+                        component={ListItem}
+                        options={{ headerStyle: { backgroundColor: '#428bca' }, headerTintColor: "#f9f9f9" }} />
+                    <Stack.Screen name="Verifikasi Akun"
+                        component={VerifyAcc}
+                        options={{ headerStyle: { backgroundColor: '#428bca' }, headerTintColor: "#f9f9f9" }} />
+                    <Stack.Screen name="Stok Rendah"
+                        component={LowStock}
+                        options={{ headerStyle: { backgroundColor: '#428bca' }, headerTintColor: "#f9f9f9" }} />
 
-                    {/* <Stack.Screen name="Tambah Stock" component={AddStock} options={{title: 'Tambah Stock Barang'}} />
-                    <Stack.Screen name="Kurangi Stock" component={SubtractStock} options={{title: 'Kurangi Stock Barang'}} />
-                    <Stack.Screen name="Daftar Barang au" component={ListItemWorker} options={{title: 'blm yakin ada atau engga'}} /> */}
-
+                    <Stack.Screen name="Tambah Stok"
+                        component={AddStock}
+                        options={{ headerStyle: { backgroundColor: '#428bca' }, headerTintColor: "#f9f9f9" }} />
+                    <Stack.Screen name="Kurangi Stok"
+                        component={SubtractStock}
+                        options={{ headerStyle: { backgroundColor: '#428bca' }, headerTintColor: "#f9f9f9" }} />
+                    <Stack.Screen name="Lihat Stok"
+                        component={ListStock}
+                        options={{ headerStyle: { backgroundColor: '#428bca' }, headerTintColor: "#f9f9f9" }} />
                 </Stack.Navigator>
             </NavigationContainer>
         </SafeAreaProvider>

@@ -9,9 +9,16 @@ export default function RemoveItem() {
     const [hasPermission, setHasPermission] = useState(null);
     const [scanned, setScanned] = useState(false);
 
-    const [itemId, setItemId] = useState("");
-    const [itemName, setItemName] = useState("");
-    const [itemStock, setItemStock] = useState("");
+    const [itemsData, setItemsData] = useState({
+        id: "",
+        name: "",
+        price: 0,
+        stock: 0,
+    });
+
+    const resetState = () => {
+        setItemsData({ id: "", name: "", price: 0, stock: 0});
+    };
 
     useEffect(() => {
         const getCameraPermissions = async () => {
@@ -29,22 +36,16 @@ export default function RemoveItem() {
         return <Text>No access to camera</Text>;
     }
 
-    const resetState = () => {
-        setItemId("");
-        setItemName("");
-        setItemStock("");
-    };
-
     const handleBarcodeScanned = async ({ type, data }) => {
         if (scanned) return;
         setScanned(true);
 
         const docRef = doc(db, "items", data);
-        const docSnapshot = await getDoc(docRef);
-        if (!docSnapshot.exists()) {
+        const fetchData = await getDoc(docRef);
+        if (!fetchData.exists()) {
             Alert.alert(
                 "Gagal Menghapus!",
-                `Barang bernama ${docSnapshot.data().name} dengan ID ${docSnapshot.id} tidak ada di database.`,
+                `Barang dengan ID ${data} tidak ditemukan di database.`,
                 [
                     {
                         text: "Rescan",
@@ -54,9 +55,10 @@ export default function RemoveItem() {
             );
             return;
         };
-        setItemId(docSnapshot.id);
-        setItemName(docSnapshot.data().name);
-        setItemStock(docSnapshot.data().stock);
+        setItemsData({
+            id: fetchData.id,
+            ...fetchData.data(),
+        });
     };
 
     const confirmRemove = () => {
@@ -71,7 +73,7 @@ export default function RemoveItem() {
 
     const handleRemoveItem = async () => {
         try {
-            const docRef = doc(db, "items", itemId);
+            const docRef = doc(db, "items", itemsData.id);
             await deleteDoc(docRef)
             Alert.alert("Hapus Barang Berhasil!", "Barang berhasil dihapus.");
             resetState();
@@ -86,29 +88,37 @@ export default function RemoveItem() {
     return(
         <View style={styles.container}>
             {!scanned && (
-            <>
-                <CameraView
-                    onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
-                    barcodeScannerSettings={{
-                        barcodeTypes: ["qr", "ean13", "upc_a", "upc_e"],
-                    }}
-                    style={StyleSheet.absoluteFillObject}
-                />
-                <View style={styles.scanBox} />
-            </>
+                <View style={styles.cameraContainer} >
+                    <Text style={styles.textCamera}>SCAN BARCODE</Text>
+                    <CameraView
+                        onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
+                        barcodeScannerSettings={{
+                            barcodeTypes: ["qr", "ean13", "upc_a", "upc_e"],
+                        }}
+                        style={styles.camera}
+                    >
+                        <View style={styles.scanBox} />
+                    </CameraView>
+                </View>
             )}
             {scanned && (
-                <>
+                <View style={styles.infoContainer}>
                     <Text style={styles.textTitle}>Nama Barang</Text>
                     <TextInput
                         style={styles.textBox}
-                        value={itemName}
+                        value={itemsData.name}
+                        editable={false}
+                    />
+                    <Text style={styles.textTitle}>Harga Barang</Text>
+                    <TextInput
+                        style={styles.textBox}
+                        value={itemsData.price.toString()}
                         editable={false}
                     />
                     <Text style={styles.textTitle}>Stock Barang</Text>
                     <TextInput
                         style={styles.textBox}
-                        value={itemStock.toString()}
+                        value={itemsData.stock.toString()}
                         editable={false}
                     />
                     <TouchableOpacity
@@ -127,7 +137,7 @@ export default function RemoveItem() {
                     >
                         <Text style={styles.buttonText}>Tap to Rescan</Text>
                     </TouchableOpacity>
-                </>
+                </View>
             )}
             <StatusBar style="light" />
         </View>
@@ -137,10 +147,38 @@ export default function RemoveItem() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        flexDirection: "column",
-        justifyContent: "center",
         backgroundColor: "#428bca",
-        padding: 30,
+    },
+    textCamera: {
+        color: "#fff",
+        fontSize: 30,
+        fontWeight: "bold",
+        marginBottom: 25,
+    },
+    cameraContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    scanBox: {
+        width: 300,
+        height: 300,
+        borderWidth: 7,
+        borderRadius: 30,
+        borderColor: '#ffffff',
+        justifyContent: 'center',
+    },
+    camera: {
+        width: 300,
+        height: 300,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 30,
+    },
+    infoContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        paddingHorizontal: 30,
     },
     textTitle: {
         color: "#fff",
@@ -161,18 +199,8 @@ const styles = StyleSheet.create({
         shadowRadius: 5,
         elevation: 3,
 	},
-    scanBox: {
-        width: 250,
-        height: 250,
-        borderWidth: 8,
-        borderRadius: 25,
-        borderColor: '#ffffff',
-        position: 'absolute',
-        top: '25%',
-        left: '25%',
-    },
     buttonRemove: {
-        backgroundColor: "#DD1010",
+        backgroundColor: "#d9534f",
         paddingVertical: 15,
         paddingHorizontal: 30,
         borderRadius: 10,
@@ -181,7 +209,7 @@ const styles = StyleSheet.create({
         bottom: 100,
     },
     buttonRescan: {
-        backgroundColor: "#1E90FF",
+        backgroundColor: "#5cb85c",
         paddingVertical: 15,
         paddingHorizontal: 30,
         borderRadius: 10,

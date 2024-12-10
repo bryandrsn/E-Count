@@ -1,11 +1,14 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, TextInput, View, TouchableOpacity, Alert } from 'react-native';
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { getAuth } from 'firebase/auth';
 import { logout } from '../../firebaseAuth';
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../config/firebaseConfig";
 
-export default function HomePage() {
+export default function HomepageWorker() {
     const navigation = useNavigation();
 
     const [activeTab, setActiveTab] = useState("Home");
@@ -23,43 +26,72 @@ export default function HomePage() {
         Alert.alert(
             "Konfirmasi", "Apakah anda yakin ingin logout?",
             [
-                { text: "Batal", style: "cancel", onPress: () => {return}},
+                { text: "Batal", style: "cancel"},
                 { text: "Ya", onPress: () => logout() && navigation.navigate("Login")}
             ]
         );
     };
 
+    const [workerData, setWorkerData] = useState({
+        name: "",
+        address: "",
+        phone: "",
+        email: "",
+    });
+
+    const fetchWorkerData = async () => {
+        try {
+            const auth = getAuth();
+            const workerId = auth.currentUser.uid;
+
+            const docRef = doc(db, "accounts", workerId);
+            const docSnapshot = await getDoc(docRef);
+            const workerData = docSnapshot.data();
+            setWorkerData({
+                name: workerData.name,
+                address: workerData.address,
+                phone: workerData.phone,
+                email: workerData.email,
+            })
+        }
+        catch {
+            console.error("Error fetching worker data:", error);
+            Alert.alert("Error", "Gagal mengambil data pekerja.");
+        }
+    };
+
+    useEffect(() => {
+        fetchWorkerData();
+    }, []);
+
     const HomeScreen = () => (
-        <View>
+        <View style={styles.content}>
             <View style={styles.headerHome}>
-                <Text style={styles.headerText}>Selamat Datang, Admin Gudang</Text>
+                <Text style={styles.headerText}>Selamat Datang, Pekerja Gudang</Text>
             </View>
 
             <View style={styles.menuContainer}>
-                <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Tambah Barang')}>
-                    <Ionicons name="add-circle-outline" size={60} />
+                <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Tambah Stok')}>
+                    <Ionicons name="add-circle-outline" size={60} color="#5cb85c" />
                     <Text style={styles.menuText}>Add</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Hapus Barang')}>
-                    <Ionicons name="remove-circle-outline" size={60} />
+                <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Kurangi Stok')}>
+                    <Ionicons name="remove-circle-outline" size={60} color="#d9534f" />
                     <Text style={styles.menuText}>Subtract</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Daftar Barang')}>
+                <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Lihat Stok')}>
                     <Ionicons name="list-circle-outline" size={60} />
                     <Text style={styles.menuText}>View List</Text>
                 </TouchableOpacity>
             </View>
-
-            <StatusBar style="light" />
         </View>
     );
 
     const AccountScreen = () => (
-        <View>
+        <View style={styles.content} >
             <View style={styles.headerAccount}>
-                <View style={styles.circleBackground} />
                 <TouchableOpacity style={styles.buttonLogout} onPress={() => handleLogout()} >
                     <Ionicons name="exit-outline" size={35} color="#f9f9f9" />
                 </TouchableOpacity>
@@ -69,55 +101,43 @@ export default function HomePage() {
 
             <View style={styles.infoContainer}>
                 <View style={styles.infoRow}>
-                    <Ionicons name="person-outline" size={20} color="#6C63FF" />
+                    <Ionicons name="person-outline" size={20} color="#428bca" />
                     <TextInput
                         style={styles.infoText}
-                        placeholder="Anna Avetisyan"
-                        placeholderTextColor="#555"
+                        value={workerData.name}
+                        editable={false}
                     />
                 </View>
                 <View style={styles.infoRow}>
-                    <Ionicons name="calendar-outline" size={20} color="#6C63FF" />
+                    <Ionicons name="location-outline" size={20} color="#428bca" />
                     <TextInput
                         style={styles.infoText}
-                        placeholder="Birthday"
-                        placeholderTextColor="#555"
+                        value={workerData.address}
+                        editable={false}
                     />
                 </View>
                 <View style={styles.infoRow}>
-                    <Ionicons name="call-outline" size={20} color="#6C63FF" />
+                    <Ionicons name="call-outline" size={20} color="#428bca" />
                     <TextInput
                         style={styles.infoText}
-                        placeholder="818 123 4567"
-                        placeholderTextColor="#555"
+                        value={workerData.phone}
+                        editable={false}
                     />
                 </View>
                 <View style={styles.infoRow}>
-                    <Ionicons name="logo-instagram" size={20} color="#6C63FF" />
+                    <Ionicons name="mail-outline" size={20} color="#428bca" />
                     <TextInput
                         style={styles.infoText}
-                        placeholder="Instagram account"
-                        placeholderTextColor="#555"
-                    />
-                </View>
-                <View style={styles.infoRow}>
-                    <Ionicons name="mail-outline" size={20} color="#6C63FF" />
-                    <TextInput
-                        style={styles.infoText}
-                        placeholder="info@aplusdesign.co"
-                        placeholderTextColor="#555"
+                        value={workerData.email}
+                        editable={false}
                     />
                 </View>
             </View>
-
-
         </View>
     );
 
-    return (
-        <View style={styles.container}>
-            <View style={styles.content}>{renderScreen()}</View>
-            
+    const TabBar = ({ activeTab, setActiveTab }) => {
+        return (
             <View style={styles.tabBar}>
                 <TouchableOpacity
                     style={[styles.tabButton, activeTab === "Home" && styles.activeTab]}
@@ -132,6 +152,15 @@ export default function HomePage() {
                     <Text style={styles.tabText}>Profile</Text>
                 </TouchableOpacity>
             </View>
+        );
+    };
+
+    return (
+        <View style={styles.container}>
+            {renderScreen()}
+            
+            <TabBar activeTab={activeTab} setActiveTab={setActiveTab} />
+            <StatusBar style="light" />
         </View>
     );
 };
@@ -144,15 +173,17 @@ const styles = StyleSheet.create({
     content: {
         flex: 1,
         alignItems: 'center',
+        justifyContent: 'center',
     },
     headerHome: {
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 100,
+        marginBottom: 60,
     },
     headerAccount: {
         alignItems: 'center',
-        marginTop: 25,
+        marginTop: 30,
+        height: '45%',
     },
     headerText: {
         fontSize: 18,
@@ -162,9 +193,8 @@ const styles = StyleSheet.create({
         marginBottom: 30,
     },
     menuContainer: {
-        flex: 1,
         flexDirection: 'row', 
-        alignItems: 'center',
+        justifyContent: 'center',
         width: '100%',
     },
     menuButton: {
@@ -191,11 +221,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#f9f9f9',
     },
     infoContainer: {
+        flex: 1,
         width: '100%',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginTop: 30,
-        padding: 30,
+        paddingHorizontal: 30,
     },
     infoRow: {
         flexDirection: 'row',

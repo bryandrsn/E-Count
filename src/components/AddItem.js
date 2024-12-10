@@ -9,9 +9,23 @@ export default function AddItem() {
     const [hasPermission, setHasPermission] = useState(null);
     const [scanned, setScanned] = useState(false);
     
-    const [itemId, setItemId] = useState("")
-    const [itemName, setItemName] = useState("")
-    const [itemStock, setItemStock] = useState("")
+    const [itemsData, setItemsData] = useState({
+        id: "",
+        name: "",
+        price: 0,
+        stock: 0,
+    });
+
+    const updateItemsData = (key, value) => {
+        setItemsData((prevState) => ({
+            ...prevState,
+            [key]: value,
+        }));
+    };
+
+    const resetState = () => {
+        setItemsData({ id: "", name: "", price: 0, stock: 0});
+    };
 
     useEffect(() => {
         const getCameraPermissions = async () => {
@@ -28,12 +42,6 @@ export default function AddItem() {
     if (hasPermission === false) {
         return <Text>No access to camera</Text>;
     }
-
-    const resetState = () => {
-        setItemId("");
-        setItemName("");
-        setItemStock("");
-    };
 
     const handleBarcodeScanned = async ({ type, data }) => {
         if (scanned) return;
@@ -54,16 +62,18 @@ export default function AddItem() {
             );
             return;
         };
-        setItemId(docSnapshot.id);
+        updateItemsData("id", data);
     };
 
     const handleAddItem = async () => {
-        if (itemId && itemName && itemStock) {
+        const {id, name, price, stock} = itemsData
+        if (id && name && price && stock) {
             try {
-                const docRef = doc(db, "items", itemId);
+                const docRef = doc(db, "items", id);
                 await setDoc(docRef, {
-                    name: itemName,
-                    stock: parseInt(itemStock),
+                    name: name,
+                    price: price,
+                    stock: stock,
                 });
                 Alert.alert("Tambah Barang Berhasil!", "Barang berhasil ditambahkan.");
                 resetState();
@@ -82,50 +92,59 @@ export default function AddItem() {
     return(
         <View style={styles.container}>
             {!scanned && (
-            <>
-                <CameraView
-                    onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
-                    barcodeScannerSettings={{
-                        barcodeTypes: ["qr", "ean13", "upc_a", "upc_e"],
-                    }}
-                    style={StyleSheet.absoluteFillObject}
-                />
-                <View style={styles.scanBox} />
-            </>
+                <View style={styles.cameraContainer} >
+                    <Text style={styles.textCamera}>SCAN BARCODE</Text>
+                    <CameraView
+                        onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
+                        barcodeScannerSettings={{
+                            barcodeTypes: ["qr", "ean13", "upc_a", "upc_e"],
+                        }}
+                        style={styles.camera}
+                    >
+                        <View style={styles.scanBox} />
+                    </CameraView>
+                </View>
             )}
             {scanned && (
-                <>
+                <View style={styles.inputContainer}>
                     <TextInput
-                    style={styles.input}
-                    placeholder="Nama Barang"
-                    placeholderTextColor="#777"
-                    value={itemName}
-                    onChangeText={setItemName}
+                        style={styles.input}
+                        placeholder="Nama Barang"
+                        placeholderTextColor="#777"
+                        value={itemsData.name}
+                        onChangeText={(value) => updateItemsData("name", value)}
                     />
                     <TextInput
-                    style={styles.input}
-                    placeholder="Jumlah Stock"
-                    placeholderTextColor="#777"
-                    value={itemStock}
-                    onChangeText={setItemStock}
+                        style={styles.input}
+                        placeholder="Harga Barang"
+                        placeholderTextColor="#777"
+                        value={itemsData.price}
+                        onChangeText={(value) => updateItemsData("price", parseInt(value))}
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Jumlah Stock"
+                        placeholderTextColor="#777"
+                        value={itemsData.stock}
+                        onChangeText={(value) => updateItemsData("stock", parseInt(value))}
                     />
                     <TouchableOpacity
-                    style={styles.buttonAdd}
-                    onPress={() => handleAddItem()}
+                        style={styles.buttonAdd}
+                        onPress={() => handleAddItem()}
                     >
                         <Text style={styles.buttonText}>Add Item</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                    style={styles.buttonRescan}
-                    onPress={() => {
-                        resetState();
-                        setScanned(false);
-                    }}
+                        style={styles.buttonRescan}
+                        onPress={() => {
+                            resetState();
+                            setScanned(false);
+                        }}
                     >
                         <Text style={styles.buttonText}>Tap to Rescan</Text>
                     </TouchableOpacity>
-                </>
+                </View>
             )}
             <StatusBar style="light" />
         </View>
@@ -135,10 +154,38 @@ export default function AddItem() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        flexDirection: "column",
-        justifyContent: "center",
         backgroundColor: "#428bca",
-        padding: 30,
+    },
+    textCamera: {
+        color: "#fff",
+        fontSize: 30,
+        fontWeight: "bold",
+        marginBottom: 25,
+    },
+    cameraContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    scanBox: {
+        width: 300,
+        height: 300,
+        borderWidth: 7,
+        borderRadius: 30,
+        borderColor: '#ffffff',
+        justifyContent: 'center',
+    },
+    camera: {
+        width: 300,
+        height: 300,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 30,
+    },
+    inputContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        paddingHorizontal: 30,
     },
     input: {
 		width: '100%',
@@ -154,18 +201,8 @@ const styles = StyleSheet.create({
         shadowRadius: 5,
         elevation: 3,
 	},
-    scanBox: {
-        width: 250,
-        height: 250,
-        borderWidth: 8,
-        borderRadius: 25,
-        borderColor: '#ffffff',
-        position: 'absolute',
-        top: '25%',
-        left: '25%',
-    },
     buttonAdd: {
-        backgroundColor: "#1E90FF",
+        backgroundColor: "#5cb85c",
         paddingVertical: 15,
         paddingHorizontal: 30,
         borderRadius: 10,

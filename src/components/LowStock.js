@@ -40,7 +40,7 @@ export default function LowStock(){
         try {
             const docRef = doc(db, "items", item.id);
             await updateDoc(docRef, { isLow: false });
-            Alert.alert("Ditandai telah dibaca!", "Lakukan restok barang segera.");
+            Alert.alert("Ditandai telah dibaca!", "Notifikasi berhasil dihapus.");
             await refreshList();
         }
         catch {
@@ -48,6 +48,8 @@ export default function LowStock(){
             Alert.alert("Terjadi Kesalahan!", "Tidak dapat terhubung ke server. Silakan coba lagi.");
         }
     };
+
+    console.log(items);
 
     return (
         <View style={styles.container}>
@@ -83,10 +85,10 @@ export default function LowStock(){
                         <TouchableOpacity
                             style={[
                                 styles.button,
-                                item.isLow ? styles.buttonActive : styles.buttonDisabled
+                                item.stock > 10 ? styles.buttonActive : styles.buttonDisabled
                             ]}
                             onPress={() => markAsRead(item)}
-                            disabled={!item.isLow}
+                            disabled={item.stock <= 10}
                         >
                             <Text style={styles.buttonText}>Tandai Telah Dibaca</Text>
                         </TouchableOpacity>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { StatusBar } from 'expo-status-bar';
 import { Text, FlatList, View, StyleSheet, Button, RefreshControl, Alert, TouchableOpacity } from "react-native";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, doc, getDocs, updateDoc } from "firebase/firestore";
 import { db } from "../config/firebaseConfig";
 import { MaterialCommunityIcons, Feather }from '@expo/vector-icons';
 

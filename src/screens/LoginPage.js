@@ -60,7 +60,7 @@ export default function LoginPage() {
 				placeholderTextColor="#777"
 				value={password}
 				onChangeText={setPassword}
-			//secureTextEntry={true}
+				secureTextEntry={true}
 			/>
 
 			{isLoading ? (<ActivityIndicator style={{marginTop: 30}} size={50} color='#f9f9f9'/>) :
